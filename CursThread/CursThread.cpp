@@ -20,7 +20,8 @@ private:
 public:
     safe_queue() = default;
 
-    void push(const T& value) {
+    void push(const T& value) 
+    {
         {
             lock_guard<mutex> lock(mymutex);
             q.push(value);
