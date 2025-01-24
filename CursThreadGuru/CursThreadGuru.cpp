@@ -60,10 +60,11 @@ int GenClients( int MaxClients )
 
 }
 
-
+mutex m_c;
 void StandardClient( int s ) // стандартный клиент
  {
-	 cout << s;
+	unique_lock<mutex> lock(m_c);
+	cout << " "<<s;
  };
 
 class thread_pool
@@ -97,7 +98,8 @@ class thread_pool
 			for (unsigned int i = 0; i < num_cores; i++)
 			{
 				int del = 100 * (rand() %( i + 1));
-				cashiers.push_back(thread(&thread_pool::Release, this, i + 1, del ));
+				thread t(&thread_pool::Release, this, i + 1, del); //??? ???? 100ms * (i+1)
+				cashiers.push_back(std::move(t));
 				
 			}
 			cout << "Cashiers created!\n";
@@ -153,21 +155,25 @@ class thread_pool
 
 			 mypool.submit(StandardClient);
 		 };
-		 cout << "Generated " << ct << " clients. Queue size: " << mypool.size() << " Processed: " << mypool.processed_clients() << endl;
-		 // sleep for one second
-		 this_thread::sleep_for(chrono::seconds(1));
-
+		 {
+			 unique_lock<mutex> lock(m_c);
+			 cout << "\nGenerated " << ct << " clients. Queue size: " << mypool.size() << " Processed: " << mypool.processed_clients() << endl;
+		 }
+			 // sleep for one second
+			 this_thread::sleep_for(chrono::seconds(1));
+		 
 
 	 }
+
 	 mypool.setDoneFlag();  // signal consumer thread to finish processing . cashier ON!
-	 cout << "Total clients generated: " << c_total << endl;
+	 cout << "\nTotal clients generated: " << c_total << endl;
 
 	 while (mypool.size())
 	 {
 		 this_thread::sleep_for(chrono::milliseconds(100));
 	 };
 
-	 cout << "All clients released: " << mypool.processed_clients() << " Queue size: " << mypool.size() << endl;
+	 cout << "\nAll clients released: " << mypool.processed_clients() << " Queue size: " << mypool.size() << endl;
 
 
 	 cout << "Program finished." << endl;
