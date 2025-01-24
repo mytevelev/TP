@@ -153,7 +153,7 @@ class thread_pool
 		 for (int j = 0; j < ct; j++)
 		 {
 
-			 mypool.submit(StandardClient);
+			 mypool.submit(StandardClient); // submit client to the queue
 		 };
 		 {
 			 unique_lock<mutex> lock(m_c);
